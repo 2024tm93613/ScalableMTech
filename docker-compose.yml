@@ -1,0 +1,127 @@
+version: '3.8'
+
+services:
+  # 🟢 MySQL for Order Service
+  mysql-order:
+    image: mysql:8
+    container_name: mysql-order
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: Mtech@1234
+      MYSQL_DATABASE: orderdb
+      MYSQL_ROOT_HOST: "%"
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_order_data:/var/lib/mysql
+
+  # 🟢 Order Service
+  order-service:
+    image: order-service
+    container_name: order-service-container
+    depends_on:
+      - mysql-order
+      - payment-service
+      - catalog-service
+      - reservation-service  # ✅ New dependency
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-order:3306/orderdb
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: Mtech@1234
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    ports:
+      - "8081:8080"
+    restart: always
+
+  # 🟣 MySQL for Payment Service
+  mysql-payment:
+    image: mysql:8
+    container_name: mysql-payment
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: Mtech@1234
+      MYSQL_DATABASE: paymentdb
+      MYSQL_ROOT_HOST: "%"
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql_payment_data:/var/lib/mysql
+
+  # 🟣 Payment Service
+  payment-service:
+    image: payment-service
+    container_name: payment-service-container
+    depends_on:
+      - mysql-payment
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-payment:3306/paymentdb
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: Mtech@1234
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    ports:
+      - "8082:8080"
+    restart: always
+
+  # 🔵 MySQL for Catalog Service
+  mysql-catalog:
+    image: mysql:8
+    container_name: mysql-catalog
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: Mtech@1234
+      MYSQL_DATABASE: catalogdb
+      MYSQL_ROOT_HOST: "%"
+    ports:
+      - "3309:3306"
+    volumes:
+      - mysql_catalog_data:/var/lib/mysql
+
+  # 🔵 Catalog Service
+  catalog-service:
+    image: catalog-service
+    container_name: catalog-service-container
+    depends_on:
+      - mysql-catalog
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-catalog:3306/catalogdb
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: Mtech@1234
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    ports:
+      - "8084:8080"
+    restart: always
+
+  # 🟠 MySQL for Reservation Service
+  mysql-reservation:
+    image: mysql:8
+    container_name: mysql-reservation
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: Mtech@1234
+      MYSQL_DATABASE: reservationdb
+      MYSQL_ROOT_HOST: "%"
+    ports:
+      - "3310:3306"
+    volumes:
+      - mysql_reservation_data:/var/lib/mysql
+
+  # 🟠 Reservation Service
+  reservation-service:
+    image: reservation-service
+    container_name: reservation-service-container
+    depends_on:
+      - mysql-reservation
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-reservation:3306/reservationdb
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: Mtech@1234
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    ports:
+      - "8085:8080"  # new port for reservation service
+    restart: always
+
+volumes:
+  mysql_order_data:
+  mysql_payment_data:
+  mysql_catalog_data:
+  mysql_reservation_data:
