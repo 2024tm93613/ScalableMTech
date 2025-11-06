@@ -120,8 +120,39 @@ services:
       - "8085:8080"  # new port for reservation service
     restart: always
 
+
+  # 🟠 MySQL for user Service
+  mysql-user:
+    image: mysql:8
+    container_name: mysql-user
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: Mtech@1234
+      MYSQL_DATABASE: userdb
+      MYSQL_ROOT_HOST: "%"
+    ports:
+      - "3311:3306"
+    volumes:
+      - mysql_user_data:/var/lib/mysql
+
+  # 🟠 user Service
+  user-service:
+    image: user-service
+    container_name: user-service-container
+    depends_on:
+      - mysql-user
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-user:3306/userdb
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: Mtech@1234
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    ports:
+      - "8086:8080"  # new port for user service
+    restart: always
+
 volumes:
   mysql_order_data:
   mysql_payment_data:
   mysql_catalog_data:
   mysql_reservation_data:
+  mysql_user_data:
