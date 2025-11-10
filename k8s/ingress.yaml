@@ -9,14 +9,14 @@ spec:
     - host: microservices.local
       http:
         paths:
-          - path: /catalog
+          - path: /v1
             pathType: Prefix
             backend:
               service:
                 name: catalog-service
                 port:
                   number: 8080
-          - path: /reservation
+          - path: /v1/seats
             pathType: Prefix
             backend:
               service:
@@ -30,7 +30,7 @@ spec:
                 name: order-service
                 port:
                   number: 8080
-          - path: /payment
+          - path: /api/payments
             pathType: Prefix
             backend:
               service:

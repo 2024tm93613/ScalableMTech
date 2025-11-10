@@ -5,7 +5,7 @@ FROM eclipse-temurin:17-jdk-jammy
 WORKDIR /app
 
 # Copy the JAR file from target folder (after mvn package)
-COPY target/order_service-1.0.0.jar app.jar
+COPY order-service/target/order_service-1.0.0.jar app.jar
 
 # Expose the port your app runs on
 EXPOSE 8080

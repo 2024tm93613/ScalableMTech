@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: reservation-deployment
+  name: reservation-service
 spec:
   replicas: 1
   selector:
@@ -11,6 +11,10 @@ spec:
     metadata:
       labels:
         app: reservation-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/actuator/prometheus"
+        prometheus.io/port: "8080"
     spec:
       containers:
         - name: reservation-service
@@ -25,8 +29,11 @@ spec:
               value: root
             - name: SPRING_DATASOURCE_PASSWORD
               value: root
-            # Communication with other services inside cluster
+
+            # Internal service communication
             - name: CATALOG_SERVICE_URL
               value: http://catalog-service:8080
             - name: ORDER_SERVICE_URL
               value: http://order-service:8080
+            - name: SERVER_PORT
+              value: "8080"

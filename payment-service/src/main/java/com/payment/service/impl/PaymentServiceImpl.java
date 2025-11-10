@@ -1,11 +1,10 @@
 package com.payment.service.impl;
 
-
 import com.payment.exception.PaymentAlreadyExistsException;
-
 import com.payment.model.Payment;
 import com.payment.repository.PaymentRepository;
 import com.payment.service.PaymentService;
+import com.payment.metrics.PaymentMetrics;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +16,9 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Autowired
     private PaymentRepository paymentRepository;
+
+    @Autowired
+    private PaymentMetrics paymentMetrics;
 
     @Override
     public List<Payment> getAllPayments() {
@@ -30,16 +32,27 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public Payment createPayment(Payment payment) {
-        if (paymentRepository.existsByOrderId(payment.getOrderId())) {
-            throw new PaymentAlreadyExistsException(payment.getOrderId());
+        try {
+            if (paymentRepository.existsByOrderId(payment.getOrderId())) {
+                throw new PaymentAlreadyExistsException(payment.getOrderId());
+            }
+
+            Payment newPayment = new Payment();
+            newPayment.setOrderId(payment.getOrderId());
+            newPayment.setAmount(payment.getAmount());
+            newPayment.setMethod(payment.getMethod());
+
+            Payment savedPayment = paymentRepository.save(newPayment);
+
+            // ✅ Update metrics for successful payment
+            paymentMetrics.incrementSuccess(savedPayment.getAmount());
+            return savedPayment;
+
+        } catch (Exception e) {
+            // ✅ Count failed attempts and simulate seat reservation failures
+            paymentMetrics.incrementFailure();
+            throw e;
         }
-        // Set only orderId, amount, method from user input
-        Payment newPayment = new Payment();
-        newPayment.setOrderId(payment.getOrderId());
-        newPayment.setAmount(payment.getAmount());
-        newPayment.setMethod(payment.getMethod());
-        // status, reference, createdAt auto-populated via @PrePersist
-        return paymentRepository.save(newPayment);
     }
 
     @Override
@@ -62,4 +75,3 @@ public class PaymentServiceImpl implements PaymentService {
         paymentRepository.deleteById(id);
     }
 }
-
